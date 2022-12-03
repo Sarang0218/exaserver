@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WebSocket Playground</title>
+</head>
+<body>
+</body>
+<script>
+const ws = new WebSocket('wss://' + location.host);
+ws.onopen = function() {
+    ws.send(`{"K":"A","1":"${location.host}"}`);
+    ws.send(`{"K":"B","1":"C"}`);
+};
+ws.onmessage = function(e) {
+  pnume = JSON.parse(e.data.toString())["0"];
+  enume = JSON.parse(e.data.toString())["1"];
+  knume = JSON.parse(e.data.toString())["2"];
+  document.getElementById("pnum").innerHTML = `${pnume} players are connected! (${enume} hosts, ${knume} webconnections)`;
+  
+};
+</script>
+<h1 >Welcome to the main Exa Server!</h1>
+<h2 id="pnum"></h2>
+
+</html>
