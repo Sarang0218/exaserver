@@ -1,9 +1,10 @@
 
 // Node.js WebSocket server script
 const http = require('http');
-// const WebSocketServer = require('websocket').server;
 const fs = require('fs')
-
+const { Worker } =  require('worker_threads');
+const path = require('path');
+var WebSocketServer = require('ws').Server;
 
 function writeHtml(outputStream) {
   const inputStream = fs.createReadStream('index.html')
@@ -34,10 +35,11 @@ const server = http.createServer(function(req, res) {
 })
 server.listen(3000);
 
-var WebSocketServer = require('ws').Server;
+
 var wss = new WebSocketServer({
   server: server
 });
+const worker = new Worker(path.join(__dirname, 'worker.js'));
 CLIENTS = [];
 magic = { "Host": [], "Player": [], "Webclient": [] };
 wss.on('connection', function(ws) {
@@ -55,57 +57,60 @@ wss.on('connection', function(ws) {
   refreshServersets();
 
   ws.on('message', function(message) {
-    console.log('received: %s from %s', message, ws.serverset);
-    n = message.toString()
-    refreshServersets()
+    worker.postMessage({
+      task:String.fromCharCode.apply(null, message)      
+    });
+  //   console.log('received: %s from %s', message, ws.serverset);
+  //   n = message.toString()
+  //   refreshServersets()
 
-    try {
-      data = JSON.parse(n);
-    } catch {
-      data = JSON.parse('{"K":"FUCK YOU!"}')
-    }
+  //   try {
+  //     data = JSON.parse(n);
+  //   } catch {
+  //     data = JSON.parse('{"K":"FUCK YOU!"}')
+  //   }
 
-    HEADER = data["K"];
+  //   HEADER = data["K"];
 
-    switch (HEADER) {
-      case "0":
-        ws.posx = data["1"][0];
-        ws.posy = data["1"][1];
-        ws.posz = data["1"][2];
-        ws.anims = 0;
-        askHostForRender(`{"I":"${ws.id}","P":[${ws.posx}, ${ws.posy}, ${ws.posz}], "A":1, "D":${ws.didrenderonce}}`);
-        ws.didrenderonce = true;
-        break;
-      case "A":
-        pnum = CLIENTS.length;
-        host = magic["Host"].length;
-        webclie = magic["Webclient"].length;
-        ws.send(`{"R":"success","0":${pnum},"1":${host}, "2":"${webclie}"}`);
-        break;
-      case "B":
-        switch (data["1"]) {
-          case "A":
-            ws.serverset = "Host";
-            break;
-          case "B":
-            ws.serverset = "Player";
-            break;
-          case "C":
-            ws.serverset = "Webclient";
-            break;
-          default:
-            ws.send('{"e":"ERROR, defaulting to json.}"')
-            ws.serverset = "Player";
+  //   switch (HEADER) {
+  //     case "0":
+  //       ws.posx = data["1"][0];
+  //       ws.posy = data["1"][1];
+  //       ws.posz = data["1"][2];
+  //       ws.anims = 0;
+  //       askHostForRender(`{"I":"${ws.id}","P":[${ws.posx}, ${ws.posy}, ${ws.posz}], "A":1, "D":${ws.didrenderonce}}`);
+  //       ws.didrenderonce = true;
+  //       break;
+  //     case "A":
+  //       pnum = CLIENTS.length;
+  //       host = magic["Host"].length;
+  //       webclie = magic["Webclient"].length;
+  //       ws.send(`{"R":"success","0":${pnum},"1":${host}, "2":"${webclie}"}`);
+  //       break;
+  //     case "B":
+  //       switch (data["1"]) {
+  //         case "A":
+  //           ws.serverset = "Host";
+  //           break;
+  //         case "B":
+  //           ws.serverset = "Player";
+  //           break;
+  //         case "C":
+  //           ws.serverset = "Webclient";
+  //           break;
+  //         default:
+  //           ws.send('{"e":"ERROR, defaulting to json.}"')
+  //           ws.serverset = "Player";
 
-            refreshServersets();
-        }
-        break;
-      case "G":
-        resendClientConnections(data["data"])
-        break;
-      default:
-        ws.send('{"R":"Not Defined"}')
-    }
+  //           refreshServersets();
+  //       }
+  //       break;
+  //     case "G":
+  //       resendClientConnections(data["data"])
+  //       break;
+  //     default:
+  //       ws.send('{"R":"Not Defined"}')
+  //   }
 
   });
   ws.on('close', function() {
@@ -116,7 +121,9 @@ wss.on('connection', function(ws) {
   })
   console.log("[SERVER]: NEW USER JOINED");
 });
-
+worker.on('message', function(mes) {
+  console.log(mes)
+});
 function sendAll(message) {
   for (var i = 0; i < CLIENTS.length; i++) {
     CLIENTS[i].send(message);
@@ -152,6 +159,9 @@ function random_id() {
     Math.round(performance.now())
   ).toString(36);
 }
+
+
+
 /*
 
 K: HEADER
