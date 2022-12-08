@@ -1,3 +1,58 @@
-# Welcome to Node 16!
+# Welcome to the new Meta!
 
-This template provides an easy way to use NodeJS v16 on Replit! As of writing, NodeJS repls have Node v12, which is several years out of date.
+## Websocket Documentation
+
+### Headers
+
+#### **GAME LOGIC**
+
+##### MOVE: [0]
+
+1.  Position
+2.  AnimationState
+
+
+##### BUIlD: [1]
+
+1. Position
+2. BuildingType
+
+##### STORAGE_GET: [2]
+
+1. Position
+
+##### STORAGE_INTERACT [3]
+
+1. Position
+2. Mode
+3. Itemtype
+
+#### **WEB SERVING**
+
+##### HOMEPAGE [A]
+
+1. Location (URL)
+
+##### CHANGE SERVERSET [B]
+
+1. Settings
+
+***Options***:
+  - Host        :A
+  - Player      :B
+  - Webclient   :C
+
+##### REFRESH SERVERSETS [C]
+
+
+#### Client Handling
+
+R: Return
+
+
+
+-- HOST --
+
+Sendback [G]
+
+PlayerLocationData
